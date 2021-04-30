@@ -1,0 +1,11 @@
+image: atlassian/default-image:2
+
+pipelines:
+  default:
+    - parallel:
+      - step:
+          name: 'Build and Test'
+          script:
+            - echo "building and testing"
+            - make
+            - ./a.out
