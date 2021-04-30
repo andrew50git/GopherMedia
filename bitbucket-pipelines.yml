@@ -7,4 +7,8 @@ pipelines:
           name: 'Build and Test'
           script:
             - echo "building and testing"
+<<<<<<< HEAD
             - make
+=======
+            - make
+>>>>>>> 2144bf6dea91b2d8ed610ca3e4bf923d45cb2085
