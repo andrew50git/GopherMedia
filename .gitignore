@@ -48,3 +48,5 @@ Thumbs.db
 *.mov
 *.wmv
 
+# KDE develop files
+*.kdev4
