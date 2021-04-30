@@ -42,16 +42,6 @@ public:
         SDL_Renderer* renderer;
     friend class Game;
     };
-    class Animation {
-    public:
-        Animation() {};
-        void Render(int x, int y, int width, int height);
-        void SwitchState(std::string new_state);
-        void AddState(std::string name, std::vector<Game::Image> images_src);
-    private:
-        std::map<std::string, std::vector<Game::Image>> images;
-    friend class Game;
-    };
     Game(const char* title, int x, int y, int width, int height, float frame_rate);
     void Update();
     void Shutdown();

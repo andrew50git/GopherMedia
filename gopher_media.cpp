@@ -25,6 +25,10 @@ Game::Game(const char* title, int x, int y, int width, int height, float frame_r
         SDL_Log("SDL initialization error: %s", SDL_GetError());
         init_success = false;
     }
+    if (sdlTTFResult != 0) {
+        SDL_Log("SDL font initialization error: %s", SDL_GetError());
+        init_success = false;
+    }
     window = SDL_CreateWindow(
         title,
         x,
@@ -179,10 +183,6 @@ void Game::Font::Render(std::string text, int x, int y, const double angle, std:
         SDL_flip = SDL_FLIP_VERTICAL;
     }
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
-}
-
-void Game::Animation::Render(int x, int y, int width, int height) {
-    
 }
 
 bool Game::GetInitSuccess() {
