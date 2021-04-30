@@ -70,8 +70,8 @@ void Game::Shutdown() {
     SDL_DestroyWindow(window);
     SDL_Quit();
     SDL_DestroyRenderer(renderer);
+    delete keyboard_state;
 }
-
 void Game::ProcessInput() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
