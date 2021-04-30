@@ -48,8 +48,9 @@ Thumbs.db
 *.mov
 *.wmv
 
-# KDE develop files
+# IDE develop files
 *.kdev4
+*.vscode
 
 # Compiled files
 *.so
