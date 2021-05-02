@@ -21,6 +21,7 @@ Name=Clang
 
 [CustomDefinesAndIncludes][ProjectPath0][Includes]
 1=/usr/include/SDL2
+2=/usr/lib64/
 
 [Launch]
 Launch Configurations=Launch Configuration 0

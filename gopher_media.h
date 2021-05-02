@@ -2,6 +2,8 @@
 #define GOPHER_MEDIA_H
 
 #include <SDL.h>
+#include <GL/glew.h>
+#include <SDL_opengl.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <array>
@@ -15,8 +17,29 @@ enum image_flip {
     none
 };
 
+class BaseGame {
+public:
+    void Update();
+    void Shutdown();
+    void ShowOutput();
+    bool GetInitSuccess();
+    void StopLoop();
+    bool GetIsRunning();
+    void ProcessInput();
+    Uint8* GetKeyboardState();
+private:
+    SDL_Window* window;
+    Uint32 ticks_count;
+    float frame_rate_attr;
+    Uint8* keyboard_state;
+    bool init_success;
+    bool is_running;
+friend class Game;
+friend class OpenGLGame;
+};
 
-class Game {
+
+class Game : public BaseGame {
 public:
     class Image {
     public:
@@ -45,24 +68,27 @@ public:
     Game(const char* title, int x, int y, int width, int height, float frame_rate);
     void Update();
     void Shutdown();
-    void Rectangle(int startx, int starty, int endx, int endy, std::array<Uint8, 4> color);
     void ShowOutput();
-    bool GetInitSuccess();
     void StopLoop();
-    bool GetIsRunning();
     Uint8* GetKeyboardState();
     Image CreateImage(const char* file_path);
     Font CreateFont(const char* file_path, int size);
+    void Rectangle(int startx, int starty, int endx, int endy, std::array<Uint8, 4> color);
 private:
-    void ProcessInput();
     void UpdateGame();
-    SDL_Window* window;
-    Uint32 ticks_count;
-    float frame_rate_attr;
-    Uint8* keyboard_state;
     SDL_Renderer* renderer;
-    bool init_success;
-    bool is_running;
+};
+
+class OpenGLGame : public BaseGame {
+public:
+    OpenGLGame(const char* title, int x, int y, int width, int height, float frame_rate);
+    void Update();
+    void Shutdown();
+    void ShowOutput();
+    void StopLoop();
+    Uint8* GetKeyboardState();
+private:
+    SDL_GLContext gl_context;
 };
 
 #endif
