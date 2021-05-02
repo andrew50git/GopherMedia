@@ -2,21 +2,9 @@
 #include <iostream>
 
 
-
-Game::Image Game::CreateImage(const char *file_path) {
-    Image res_img;
-    res_img.renderer = renderer;
-    res_img.SDL_image = IMG_LoadTexture(renderer, file_path);
-    SDL_QueryTexture(res_img.SDL_image, NULL, NULL, &res_img.width, &res_img.height);
-    return res_img;
-}
-
-Game::Font Game::CreateFont(const char *file_path, int size) {
-    Font res_font;
-    res_font.renderer = renderer;
-    res_font.SDL_font = TTF_OpenFont(file_path, size);
-    return res_font;
-}
+/*
+ * Game Methods
+*/
 
 Game::Game(const char* title, int x, int y, int width, int height, float frame_rate) {
     int sdlResult = SDL_Init(SDL_INIT_VIDEO);
@@ -24,10 +12,12 @@ Game::Game(const char* title, int x, int y, int width, int height, float frame_r
     if (sdlResult != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
         init_success = false;
+        return;
     }
     if (sdlTTFResult != 0) {
         SDL_Log("SDL font initialization error: %s", SDL_GetError());
         init_success = false;
+        return;
     }
     window = SDL_CreateWindow(
         title,
@@ -40,6 +30,7 @@ Game::Game(const char* title, int x, int y, int width, int height, float frame_r
     if (!window) {
         SDL_Log("Window creation error: %s", SDL_GetError());
         init_success = false;
+        return;
     }
     renderer = SDL_CreateRenderer(
         window,
@@ -70,9 +61,9 @@ void Game::Shutdown() {
     SDL_DestroyWindow(window);
     SDL_Quit();
     SDL_DestroyRenderer(renderer);
-    delete keyboard_state;
 }
-void Game::ProcessInput() {
+
+void BaseGame::ProcessInput() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -96,6 +87,24 @@ void Game::ShowOutput() {
     SDL_RenderPresent(renderer);
 }
 
+bool BaseGame::GetInitSuccess() {
+    return init_success;
+}
+
+void BaseGame::StopLoop() {
+    is_running = false;
+}
+
+bool BaseGame::GetIsRunning() {
+    return is_running;
+}
+
+Uint8* BaseGame::GetKeyboardState() {
+    return keyboard_state;
+}
+
+//graphic methods
+
 void Game::Rectangle(int startx, int starty, int endx, int endy, std::array<Uint8, 4> color) {
     SDL_Rect rect {
         startx,
@@ -112,6 +121,25 @@ void Game::Rectangle(int startx, int starty, int endx, int endy, std::array<Uint
     );
     SDL_RenderFillRect(renderer, &rect);
 }
+
+Game::Image Game::CreateImage(const char *file_path) {
+    Image res_img;
+    res_img.renderer = renderer;
+    res_img.SDL_image = IMG_LoadTexture(renderer, file_path);
+    SDL_QueryTexture(res_img.SDL_image, NULL, NULL, &res_img.width, &res_img.height);
+    return res_img;
+}
+
+Game::Font Game::CreateFont(const char *file_path, int size) {
+    Font res_font;
+    res_font.renderer = renderer;
+    res_font.SDL_font = TTF_OpenFont(file_path, size);
+    return res_font;
+}
+
+/*
+ * Subclasses: Image, Font
+*/
 
 void Game::Image::Render(int x, int y, int width, int height) {
     SDL_Rect rect {
@@ -142,6 +170,14 @@ void Game::Image::Render(int x, int y, int dest_width, int dest_height, const do
         SDL_flip = SDL_FLIP_VERTICAL;
     }
     SDL_RenderCopyEx(renderer, SDL_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
+}
+
+int Game::Image::GetWidth() {
+    return width;
+}
+
+int Game::Image::GetHeight() {
+    return height;
 }
 
 void Game::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> color) {
@@ -185,26 +221,67 @@ void Game::Font::Render(std::string text, int x, int y, const double angle, std:
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
 }
 
-bool Game::GetInitSuccess() {
-    return init_success;
+/*
+ * OpenGLGame methods
+*/
+
+OpenGLGame::OpenGLGame(const char* title, int x, int y, int width, int height, float frame_rate) {
+    int sdlResult = SDL_Init(SDL_INIT_VIDEO);
+    if (sdlResult != 0) {
+        SDL_Log("SDL initialization error: %s", SDL_GetError());
+        init_success = false;
+        return;
+    }
+    window = SDL_CreateWindow(
+        title,
+        x,
+        y,
+        width,
+        height,
+        SDL_WINDOW_OPENGL
+    ); 
+    if (!window) {
+        SDL_Log("Window creation error: %s", SDL_GetError());
+        init_success = false;
+        return;
+    }
+    init_success = true;
+    is_running = true;
+    ticks_count = 0;
+    frame_rate_attr = frame_rate;
+    gl_context = SDL_GL_CreateContext(window);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    glewExperimental = GL_TRUE;
+    int glewResult = glewInit();
+    if (glewResult != GLEW_OK) {
+        SDL_Log("Could not init glew");
+        init_success = false;
+        return;
+    }
+    glGetError();
 }
 
-void Game::StopLoop() {
-    is_running = false;
+void OpenGLGame::Shutdown() {
+    SDL_GL_DeleteContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
-bool Game::GetIsRunning() {
-    return is_running;
+void OpenGLGame::Update() {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ProcessInput();
 }
 
-Uint8* Game::GetKeyboardState() {
-    return keyboard_state;
+void OpenGLGame::ShowOutput() {
+    SDL_GL_SwapWindow(window);
 }
 
-int Game::Image::GetWidth() {
-    return width;
-}
-
-int Game::Image::GetHeight() {
-    return height;
-}
