@@ -27,11 +27,13 @@ public:
     bool GetIsRunning();
     void ProcessInput();
     Uint8* GetKeyboardState();
+    bool GetMouseState(int button);
 private:
     SDL_Window* window;
     Uint32 ticks_count;
     float frame_rate_attr;
     Uint8* keyboard_state;
+    Uint32 mouse_state;
     bool init_success;
     bool is_running;
 friend class Game;

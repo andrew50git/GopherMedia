@@ -27,6 +27,7 @@ int main() {
         while (game.GetIsRunning()) {
             game.Update();
             game.ShowOutput();
+            std::cout << game.GetMouseState(1) << std::endl;
         }
     }
     game.Shutdown();

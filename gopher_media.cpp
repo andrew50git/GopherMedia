@@ -73,6 +73,7 @@ void BaseGame::ProcessInput() {
         }
     }
     keyboard_state = (Uint8*) SDL_GetKeyboardState(NULL);
+    mouse_state = SDL_GetMouseState(NULL, NULL);
 }
 
 void Game::UpdateGame() {
@@ -81,10 +82,6 @@ void Game::UpdateGame() {
     if (delta_time > 0.05f) {
         delta_time = 0.05f;
     }
-}
-
-void Game::ShowOutput() {
-    SDL_RenderPresent(renderer);
 }
 
 bool BaseGame::GetInitSuccess() {
@@ -101,6 +98,10 @@ bool BaseGame::GetIsRunning() {
 
 Uint8* BaseGame::GetKeyboardState() {
     return keyboard_state;
+}
+
+bool BaseGame::GetMouseState(int button) {
+    return mouse_state & button;
 }
 
 //graphic methods
@@ -135,6 +136,10 @@ Game::Font Game::CreateFont(const char *file_path, int size) {
     res_font.renderer = renderer;
     res_font.SDL_font = TTF_OpenFont(file_path, size);
     return res_font;
+}
+
+void Game::ShowOutput() {
+    SDL_RenderPresent(renderer);
 }
 
 /*
