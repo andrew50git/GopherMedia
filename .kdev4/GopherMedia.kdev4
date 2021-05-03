@@ -45,7 +45,7 @@ Working Directory=
 isExecutable=true
 
 [MakeBuilder]
-Number Of Jobs=1
+Number Of Jobs=12
 Override Number Of Jobs=true
 
 [Project]
