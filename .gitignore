@@ -4,7 +4,6 @@
 *.war
 
 # IDE develop files
-*.kdev4
 *.vscode
 
 # Compiled files
