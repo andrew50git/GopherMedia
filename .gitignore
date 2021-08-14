@@ -11,3 +11,15 @@
 *.so
 *.out
 *.o
+bin/*
+lib/*
+
+#Cmake
+
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
+Makefile
+*.ninja
+*.ninja_deps
+*.ninja_log
