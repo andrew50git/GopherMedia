@@ -1,5 +1,0 @@
-/home/andrew/Documents/Programs/C++/GopherMedia/CMakeFiles/rebuild_cache.dir
-/home/andrew/Documents/Programs/C++/GopherMedia/CMakeFiles/edit_cache.dir
-/home/andrew/Documents/Programs/C++/GopherMedia/CMakeFiles/test2d.dir
-/home/andrew/Documents/Programs/C++/GopherMedia/CMakeFiles/test3d.dir
-/home/andrew/Documents/Programs/C++/GopherMedia/CMakeFiles/gopher_media.dir
