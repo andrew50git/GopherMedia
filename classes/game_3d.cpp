@@ -1,0 +1,309 @@
+#include "../gopher_media.h"
+/*
+ * Game3D methods
+*/
+
+Game3D::Game3D(std::string title, int x, int y, int width, int height, float frame_rate) {
+    int sdlResult = SDL_Init(SDL_INIT_VIDEO);
+    if (sdlResult != 0) {
+        SDL_Log("SDL initialization error: %s", SDL_GetError());
+        init_success = false;
+        return;
+    }
+    window = SDL_CreateWindow(
+        title.c_str(),
+        x,
+        y,
+        width,
+        height,
+        SDL_WINDOW_OPENGL
+    ); 
+    if (!window) {
+        SDL_Log("Window creation error: %s", SDL_GetError());
+        init_success = false;
+        return;
+    }
+    init_success = true;
+    is_running = true;
+    ticks_count = 0;
+    frame_rate_attr = frame_rate;
+    gl_context = SDL_GL_CreateContext(window);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    glewExperimental = GL_TRUE;
+    int glewResult = glewInit();
+    if (glewResult != GLEW_OK) {
+        SDL_Log("Could not init glew");
+        init_success = false;
+        return;
+    }
+    glGetError();
+}
+
+void Game3D::Delete() {
+    SDL_GL_DeleteContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+void Game3D::Update() {
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ProcessInput();
+}
+
+void Game3D::DrawObject(Object& object, BaseShader& shader, Camera& camera) {
+    shader.SetActive();
+    glBindVertexArray(object.vertex_array.vertex_array);
+    shader.SetInput("world_transform", object.world_transform);
+    shader.SetInput("view_projection", camera.view_matrix * camera.projection_matrix);
+    glDrawElements(
+        GL_TRIANGLES,
+        object.vertex_array.GetNumIndices(),
+        GL_UNSIGNED_INT,
+        nullptr
+    );
+}
+
+void Game3D::ShowOutput() {
+    SDL_GL_SwapWindow(window);
+}
+
+unsigned int Game3D::VertexArray::GetNumVertices() {
+    return num_vertices;
+}
+
+unsigned int Game3D::VertexArray::GetNumIndices() {
+    return num_indices;
+}
+
+
+Game3D::VertexArray::VertexArray(const float* vertices, unsigned int arg_num_vertices, 
+                                 const unsigned int* indices, unsigned int arg_num_indices) {
+    num_vertices = arg_num_vertices;
+    num_indices = arg_num_indices;
+    glGenVertexArrays(1, &vertex_array);
+    glBindVertexArray(vertex_array);
+    
+    glGenBuffers(1, &vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        num_vertices * 3 * sizeof(float),
+        vertices,
+        GL_STATIC_DRAW
+    );
+    
+    glGenBuffers(1, &index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        num_indices * sizeof(unsigned int),
+        indices,
+        GL_STATIC_DRAW
+    );
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(float) * 3,
+        0
+    );
+}
+
+void Game3D::VertexArray::Delete() {
+    glDeleteBuffers(1, &vertex_buffer);
+    glDeleteBuffers(1, &index_buffer);
+    glDeleteVertexArrays(1, &vertex_array);
+}
+
+
+
+void Game3D::BaseShader::SetActive() {
+    glUseProgram(shader_program);
+}
+
+bool Game3D::BaseShader::Compile(std::string content, GLenum type, GLuint& out) {
+    const char* shader_content_char = content.c_str();
+    out = glCreateShader(type);
+    glShaderSource(out, 1, &shader_content_char, nullptr);
+    glCompileShader(out);
+    if (!CheckShader(out)) {
+        SDL_Log("Compilation of failed");
+        return false;
+    }
+    return true;
+}
+
+//TODO: error length detection
+bool Game3D::BaseShader::CheckShader(GLuint arg_shader) {
+    GLint status;
+    glGetShaderiv(arg_shader, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE) {
+        char buffer[2048];
+        memset(buffer, 0, 2048);
+        glGetShaderInfoLog(arg_shader, 2047, nullptr, buffer);
+        SDL_Log("Compilation failed for shader %s", buffer);
+        return false;
+    }
+    return true;
+}
+
+bool Game3D::BaseShader::CheckShaderProgram(GLuint arg_shader_program) {
+    GLint status;
+    glGetProgramiv(arg_shader_program, GL_LINK_STATUS, &status);
+    if (status == GL_FALSE) {
+        char buffer[2048];
+        memset(buffer, 0, 2048);
+        glGetProgramInfoLog(arg_shader_program, 2047, nullptr, buffer);
+        SDL_Log("Compilation failed for program %s", buffer);
+        return false;
+    }
+    return true;
+}
+
+bool Game3D::BaseShader::GetSuccess() {
+    return program_success;
+}
+
+
+void Game3D::BaseShader::Delete() {
+    glDeleteProgram(shader_program);
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+}
+
+void Game3D::BaseShader::SetInput(std::string name, Eigen::Matrix4f matrix) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniformMatrix4fv(
+        input_loc,
+        1,
+        GL_TRUE,
+        matrix.data()
+    );
+}
+
+void Game3D::BaseShader::SetInput(std::string name, std::array<float, 4> color) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4f(
+        input_loc,
+        color[0],
+        color[1],
+        color[2],
+        color[3]
+    );
+}
+
+Game3D::CustomShader::CustomShader(std::string vertex_file_path, std::string fragment_file_path) {
+    std::ifstream vertex_fin(vertex_file_path);
+    std::string vertex_content((std::istreambuf_iterator<char>(vertex_fin)),
+                       (std::istreambuf_iterator<char>()));
+    bool vert_status = Compile(vertex_content, GL_VERTEX_SHADER, vertex_shader);
+    
+    std::ifstream fragment_fin(fragment_file_path);
+    std::string fragment_content((std::istreambuf_iterator<char>(fragment_fin)),
+                       (std::istreambuf_iterator<char>()));
+    bool frag_status = Compile(fragment_content, GL_FRAGMENT_SHADER, fragment_shader);
+    
+    if (!vert_status || !frag_status) {
+        program_success = false;
+        return;
+    }
+    shader_program = glCreateProgram();
+    glAttachShader(shader_program, fragment_shader);
+    glAttachShader(shader_program, vertex_shader);
+    glLinkProgram(shader_program);
+    if (!CheckShaderProgram(shader_program)) {
+        program_success = false;
+        return;
+    }
+    program_success = true;
+}
+
+std::string Game3D::CustomShader::PrintName() {
+    return "CustomShader";
+}
+
+Game3D::Object::Object(const float* vertices, unsigned int num_vertices, 
+                           const unsigned int* indices, unsigned int num_indices) {
+    vertex_array = VertexArray(vertices, num_vertices, indices, num_indices);
+    rotation_x = 0;
+    rotation_y = 0;
+    rotation_z = 0;
+    world_transform.setIdentity();
+    scale = 1;
+    position = {0, 0, 0};
+}
+
+void Game3D::Object::Delete() {
+    vertex_array.Delete();
+}
+
+void Game3D::Object::SetPosition(float x, float y, float z) {
+    position = {x, y, z};
+    ComputeWorldTransform();
+}
+
+void Game3D::Object::SetRotation(Axis axis, float angle) {
+    if (axis == x) {
+        rotation_x = angle;
+    } else if (axis == y) {
+        rotation_y = angle;
+    } else if (axis == z) {
+        rotation_z = angle;
+    }
+    ComputeWorldTransform();
+}
+
+void Game3D::Object::SetScale(float new_scale) {
+    scale = new_scale;
+    ComputeWorldTransform();
+}
+
+void Game3D::Object::ComputeWorldTransform() {
+    Eigen::Transform<float, 3, Eigen::Affine> temp_transform;
+    temp_transform = Eigen::Translation3f(position) * 
+                    Eigen::AngleAxisf(rotation_x, Eigen::Vector3f::UnitX()) * 
+                    Eigen::AngleAxisf(rotation_y, Eigen::Vector3f::UnitY()) * 
+                    Eigen::AngleAxisf(rotation_z, Eigen::Vector3f::UnitZ()) * 
+                    Eigen::Scaling(scale);
+    world_transform = temp_transform.matrix();
+}
+
+//Roses are red, violets are blue, https://stackoverflow.com/a/13786235/12620352, thank you.
+
+Game3D::Camera::Camera(float fov, float height_to_width, float near, float far) {
+    projection_matrix.setIdentity();
+    view_matrix.Zero();
+    float range = far - near;
+    float invtan = 1.0 / tan(fov/2);
+    projection_matrix(0,0) = invtan * height_to_width;
+    projection_matrix(1,1) = invtan;
+    projection_matrix(2,2) = far / range;
+    projection_matrix(3,2) = 1;
+    projection_matrix(2,3) = -1 * near * far / range;
+    projection_matrix(3,3) = 0;
+    LookAt({0, 0, 0}, {0, 0, 1});
+}
+
+void Game3D::Camera::LookAt(Eigen::Vector3f position, Eigen::Vector3f target) {
+    Eigen::Matrix3f R;
+    R.col(2) = (target-position).normalized();
+    R.col(0) = (Eigen::Vector3f::UnitY().cross(R.col(2))).normalized();
+    R.col(1) = (R.col(2).cross(R.col(0))).normalized();
+    view_matrix.block<3,3>(0,0) = R;
+    view_matrix(3,3) = 1.0f;
+    view_matrix(0,3)= -(R.col(0).cross(position)).norm();
+    view_matrix(1,3)= -(R.col(1).cross(position)).norm();
+    view_matrix(2,3)= -(R.col(2).cross(position)).norm();
+}
