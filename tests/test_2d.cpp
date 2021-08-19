@@ -3,8 +3,8 @@
 
 void test_Game2D() {
     Game2D game("gopher_media", 100, 100, 1024, 768, 60.0f);
-    Game2D::Image gopher_image = game.CreateImage("/home/andrew/gophers-master/GO_PARIS.png");
-    Game2D::Font test_font = game.CreateFont("/home/andrew/Documents/Programs/C++/GopherMedia/tests/test.ttf", 60);
+    Game2D::Image gopher_image = game.CreateImage("../tests/GO_PARIS.png");
+    Game2D::Font test_font = game.CreateFont("../tests/test.ttf", 60);
     ImageFlip curr_flip = none;
     if (game.GetSuccess()) {
         while (game.GetIsRunning()) {

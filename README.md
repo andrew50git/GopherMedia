@@ -10,11 +10,14 @@ SDL2 and GLEW
 # Screenshot
 ![an orange square slightly tilted](screenshots/gophermedia1.png)
 
-# Compilation
+# Compilation and exection
 
 ```
 cmake .
 make
+cd bin
+./test2d
+./test3d
 ```
 
 # Contribution
