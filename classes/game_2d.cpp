@@ -74,6 +74,10 @@ void Game2D::Delete() {
 */
 
 void Game2D::Image::Render(int x, int y, int width, int height) {
+    if (!init_success) {
+        SDL_Log("Attempted to render broken image");
+        return;
+    }
     SDL_Rect rect {
         x,
         y,
@@ -85,6 +89,10 @@ void Game2D::Image::Render(int x, int y, int width, int height) {
 
 void Game2D::Image::Render(int x, int y, int width, int height, const double angle, std::array<int, 2> rotation_point, 
                            ImageFlip flip) {
+    if (!init_success) {
+        SDL_Log("Attempted to render broken image");
+        return;
+    }
     SDL_Rect rect {
         x,
         y,
@@ -114,6 +122,10 @@ int Game2D::Image::GetHeight() {
 }
 
 void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> color) {
+    if (!init_success) {
+        SDL_Log("Attempted to render broken font");
+        return;
+    }
     SDL_Color SDL_color = {color[0], color[1], color[2], color[3]};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
@@ -130,6 +142,10 @@ void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> c
 
 void Game2D::Font::Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point, 
                           ImageFlip flip, std::array<Uint8, 4> color) {
+    if (!init_success) {
+        SDL_Log("Attempted to render broken font");
+        return;
+    }
     SDL_Color SDL_color = {color[0], color[1], color[2], color[3]};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
@@ -180,6 +196,11 @@ Game2D::Image Game2D::CreateImage(std::string file_path) {
     Image res_img;
     res_img.renderer = renderer;
     res_img.SDL_image = IMG_LoadTexture(renderer, file_path.c_str());
+    if (res_img.SDL_image == NULL) {
+        res_img.init_success = false;
+        SDL_Log("Could not create image from %s: %s", file_path.c_str(), SDL_GetError());
+        return res_img;
+    }
     SDL_QueryTexture(res_img.SDL_image, NULL, NULL, &res_img.width, &res_img.height);
     return res_img;
 }
@@ -188,6 +209,11 @@ Game2D::Font Game2D::CreateFont(std::string file_path, int size) {
     Font res_font;
     res_font.renderer = renderer;
     res_font.SDL_font = TTF_OpenFont(file_path.c_str(), size);
+    if (res_font.SDL_font == NULL) {
+        res_font.init_success = false;
+        SDL_Log("Could not create font from %s: %s", file_path.c_str(), SDL_GetError());
+        return res_font;
+    }
     return res_font;
 }
 

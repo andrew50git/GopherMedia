@@ -78,6 +78,7 @@ public:
         int height;
         SDL_Texture* SDL_image;
         SDL_Renderer* renderer;
+        bool init_success = true;
     friend class Game2D;
     };
     class Font {
@@ -89,6 +90,7 @@ public:
     private:
         TTF_Font* SDL_font;
         SDL_Renderer* renderer;
+        bool init_success = true;
     friend class Game2D;
     };
     Game2D(std::string title, int x, int y, int width, int height, float frame_rate);
