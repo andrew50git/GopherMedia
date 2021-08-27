@@ -53,7 +53,7 @@ private:
     SDL_Window* window;
     Uint32 ticks_count;
     float frame_rate_attr;
-    bool init_success;
+    bool initialized;
     bool is_running;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
     int mouse_x, mouse_y;
@@ -73,12 +73,13 @@ public:
         void Render(int x, int y, int width, int height);
         void Render(int x, int y, int width, int height, const double angle,
                     std::array<int, 2> rotation_point, ImageFlip flip);
+        void Delete();
     private:
         int width;
         int height;
         SDL_Texture* SDL_image;
         SDL_Renderer* renderer;
-        bool init_success = true;
+        bool initialized = true;
     friend class Game2D;
     };
     class Font {
@@ -87,10 +88,11 @@ public:
         void Render(std::string text, int x, int y, std::array<Uint8, 4> color);
         void Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point,
                     ImageFlip flip, std::array<Uint8, 4> color);
+        void Delete();
     private:
         TTF_Font* SDL_font;
         SDL_Renderer* renderer;
-        bool init_success = true;
+        bool initialized = true;
     friend class Game2D;
     };
     Game2D(std::string title, int x, int y, int width, int height, float frame_rate);
@@ -155,7 +157,7 @@ public:
     class Camera {
     public:
         Camera(float fov, float height_to_width, float near, float far);
-        void LookAt(Eigen::Vector3f position, Eigen::Vector3f target);
+        void LookAt(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up);
     private:
         Eigen::Matrix4f view_matrix;
         Eigen::Matrix4f projection_matrix;

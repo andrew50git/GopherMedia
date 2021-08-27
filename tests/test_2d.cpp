@@ -21,5 +21,6 @@ void test_Game2D() {
 
 int main() {
     test_Game2D();
+    Quit();
     return 0;
 }

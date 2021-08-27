@@ -35,5 +35,6 @@ void test_Game3D() {
 
 int main() {
     test_Game3D();
+    Quit();
     return 0;
 }
