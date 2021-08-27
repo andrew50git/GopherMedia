@@ -191,5 +191,7 @@ public:
     void StopLoop();
 };
 
+void Quit();
+
 #endif
 
