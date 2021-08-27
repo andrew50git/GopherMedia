@@ -5,16 +5,17 @@
 */
 
 Game2D::Game2D(std::string title, int x, int y, int width, int height, float frame_rate) {
-    int sdlResult = SDL_Init(SDL_INIT_VIDEO);
-    int sdlTTFResult = TTF_Init();
-    if (sdlResult != 0) {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    int sdl_result = SDL_Init(SDL_INIT_VIDEO);
+    int sdl_ttf_result = TTF_Init();
+    if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
-        init_success = false;
+            initialized = false;
         return;
     }
-    if (sdlTTFResult != 0) {
+    if (sdl_ttf_result != 0) {
         SDL_Log("SDL font initialization error: %s", SDL_GetError());
-        init_success = false;
+            initialized = false;
         return;
     }
     window = SDL_CreateWindow(
@@ -27,7 +28,7 @@ Game2D::Game2D(std::string title, int x, int y, int width, int height, float fra
     );
     if (!window) {
         SDL_Log("Window creation error: %s", SDL_GetError());
-        init_success = false;
+            initialized = false;
         return;
     }
     renderer = SDL_CreateRenderer(
@@ -36,7 +37,6 @@ Game2D::Game2D(std::string title, int x, int y, int width, int height, float fra
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    init_success = true;
     is_running = true;
     ticks_count = 0;
     frame_rate_attr = frame_rate;
@@ -55,6 +55,11 @@ void Game2D::Update() {
     WaitUntilFrame();
 }
 
+
+void Game2D::ShowOutput() {
+    SDL_RenderPresent(renderer);
+}
+
 void Game2D::WaitUntilFrame() {
     while (!SDL_TICKS_PASSED(SDL_GetTicks(), ticks_count + 1000.0f / frame_rate_attr));
     float delta_time = (SDL_GetTicks() - ticks_count) / 1000.0f;
@@ -65,8 +70,8 @@ void Game2D::WaitUntilFrame() {
 
 void Game2D::Delete() {
     SDL_DestroyWindow(window);
-    SDL_Quit();
     SDL_DestroyRenderer(renderer);
+    initialized = false;
 }
 
 /*
@@ -74,7 +79,7 @@ void Game2D::Delete() {
 */
 
 void Game2D::Image::Render(int x, int y, int width, int height) {
-    if (!init_success) {
+    if (!initialized) {
         SDL_Log("Attempted to render broken image");
         return;
     }
@@ -89,7 +94,7 @@ void Game2D::Image::Render(int x, int y, int width, int height) {
 
 void Game2D::Image::Render(int x, int y, int width, int height, const double angle, std::array<int, 2> rotation_point, 
                            ImageFlip flip) {
-    if (!init_success) {
+    if (!initialized) {
         SDL_Log("Attempted to render broken image");
         return;
     }
@@ -122,7 +127,7 @@ int Game2D::Image::GetHeight() {
 }
 
 void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> color) {
-    if (!init_success) {
+    if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
@@ -142,7 +147,7 @@ void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> c
 
 void Game2D::Font::Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point, 
                           ImageFlip flip, std::array<Uint8, 4> color) {
-    if (!init_success) {
+    if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
@@ -171,16 +176,12 @@ void Game2D::Font::Render(std::string text, int x, int y, const double angle, st
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
 }
 
-/*
- * Graphics methods
-*/
-
-void Game2D::Rectangle(int startx, int starty, int endx, int endy, std::array<Uint8, 4> color) {
+void Game2D::Rectangle(int x, int y, int width, int height, std::array<Uint8, 4> color) {
     SDL_Rect rect {
-        startx,
-        starty,
-        endx,
-        endy
+        x,
+        y,
+        width,
+        height
     };
     SDL_SetRenderDrawColor(
         renderer,
@@ -197,7 +198,7 @@ Game2D::Image Game2D::CreateImage(std::string file_path) {
     res_img.renderer = renderer;
     res_img.SDL_image = IMG_LoadTexture(renderer, file_path.c_str());
     if (res_img.SDL_image == NULL) {
-        res_img.init_success = false;
+        res_img.initialized = false;
         SDL_Log("Could not create image from %s: %s", file_path.c_str(), SDL_GetError());
         return res_img;
     }
@@ -210,13 +211,20 @@ Game2D::Font Game2D::CreateFont(std::string file_path, int size) {
     res_font.renderer = renderer;
     res_font.SDL_font = TTF_OpenFont(file_path.c_str(), size);
     if (res_font.SDL_font == NULL) {
-        res_font.init_success = false;
+        res_font.initialized = false;
         SDL_Log("Could not create font from %s: %s", file_path.c_str(), SDL_GetError());
         return res_font;
     }
     return res_font;
 }
 
-void Game2D::ShowOutput() {
-    SDL_RenderPresent(renderer);
+void Game2D::Image::Delete() {
+    SDL_DestroyTexture(SDL_image);
+    initialized = false;
 }
+
+void Game2D::Font::Delete() {
+    TTF_CloseFont(SDL_font);
+    initialized = false;
+}
+

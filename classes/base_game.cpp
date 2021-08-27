@@ -38,7 +38,7 @@ bool BaseGame::GetMouseButton(MouseButton button) {
 }
 
 bool BaseGame::GetSuccess() {
-    return init_success;
+    return initialized;
 }
 
 void BaseGame::StopLoop() {
@@ -47,4 +47,8 @@ void BaseGame::StopLoop() {
 
 bool BaseGame::GetIsRunning() {
     return is_running;
+}
+
+void Quit() {
+    SDL_Quit();
 }

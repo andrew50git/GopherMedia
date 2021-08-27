@@ -4,10 +4,10 @@
 */
 
 Game3D::Game3D(std::string title, int x, int y, int width, int height, float frame_rate) {
-    int sdlResult = SDL_Init(SDL_INIT_VIDEO);
-    if (sdlResult != 0) {
+    int sdl_result = SDL_Init(SDL_INIT_VIDEO);
+    if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
-        init_success = false;
+        initialized = false;
         return;
     }
     window = SDL_CreateWindow(
@@ -20,10 +20,10 @@ Game3D::Game3D(std::string title, int x, int y, int width, int height, float fra
     ); 
     if (!window) {
         SDL_Log("Window creation error: %s", SDL_GetError());
-        init_success = false;
+        initialized = false;
         return;
     }
-    init_success = true;
+    initialized = true;
     is_running = true;
     ticks_count = 0;
     frame_rate_attr = frame_rate;
@@ -41,7 +41,7 @@ Game3D::Game3D(std::string title, int x, int y, int width, int height, float fra
     int glewResult = glewInit();
     if (glewResult != GLEW_OK) {
         SDL_Log("Could not init glew");
-        init_success = false;
+        initialized = false;
         return;
     }
     glGetError();
@@ -50,7 +50,6 @@ Game3D::Game3D(std::string title, int x, int y, int width, int height, float fra
 void Game3D::Delete() {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 void Game3D::Update() {
@@ -284,7 +283,7 @@ void Game3D::Object::ComputeWorldTransform() {
 
 Game3D::Camera::Camera(float fov, float height_to_width, float near, float far) {
     projection_matrix.setIdentity();
-    view_matrix.Zero();
+    view_matrix.setZero();
     float range = far - near;
     float invtan = 1.0 / tan(fov/2);
     projection_matrix(0,0) = invtan * height_to_width;
@@ -293,17 +292,18 @@ Game3D::Camera::Camera(float fov, float height_to_width, float near, float far) 
     projection_matrix(3,2) = 1;
     projection_matrix(2,3) = -1 * near * far / range;
     projection_matrix(3,3) = 0;
-    LookAt({0, 0, 0}, {0, 0, 1});
+    LookAt({0, 0, 0}, {0, 0, 1}, Eigen::Vector3f::UnitY());
 }
 
-void Game3D::Camera::LookAt(Eigen::Vector3f position, Eigen::Vector3f target) {
+
+//Roses are red, violets are blue, https://stackoverflow.com/a/13786235/12620352, thank you.
+
+void Game3D::Camera::LookAt(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up) {
     Eigen::Matrix3f R;
-    R.col(2) = (target-position).normalized();
-    R.col(0) = (Eigen::Vector3f::UnitY().cross(R.col(2))).normalized();
-    R.col(1) = (R.col(2).cross(R.col(0))).normalized();
-    view_matrix.block<3,3>(0,0) = R;
+    R.col(2) = (position-target).normalized();
+    R.col(0) = up.cross(R.col(2)).normalized();
+    R.col(1) = R.col(2).cross(R.col(0));
+    view_matrix.topLeftCorner<3,3>() = R.transpose();
+    view_matrix.topRightCorner<3,1>() = -R.transpose() * position;
     view_matrix(3,3) = 1.0f;
-    view_matrix(0,3)= -(R.col(0).cross(position)).norm();
-    view_matrix(1,3)= -(R.col(1).cross(position)).norm();
-    view_matrix(2,3)= -(R.col(2).cross(position)).norm();
 }
