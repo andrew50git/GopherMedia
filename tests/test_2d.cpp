@@ -9,9 +9,9 @@ void test_Game2D() {
     if (game.GetSuccess()) {
         while (game.GetIsRunning()) {
             game.Update();
-            gopher_image.Render(0, 0, gopher_image.GetWidth() / 4, gopher_image.GetHeight() / 4, 0.0f, 
-            {gopher_image.GetWidth() / 16, gopher_image.GetHeight() / 16}, curr_flip);
-            game.Rectangle(0, 0, 100, 100, {255, 0, 0, 100});
+            gopher_image.Render(0, 0, gopher_image.GetWidth() / 4, gopher_image.GetHeight() / 4, 10.0f, 
+                                {gopher_image.GetWidth() / 8, gopher_image.GetHeight() / 8}, curr_flip);
+            game.Rectangle(0, 0, 200, 100, {255, 0, 0, 100});
             test_font.Render("hi", 100, 100, {255, 255, 0, 200});
             game.ShowOutput();
         }

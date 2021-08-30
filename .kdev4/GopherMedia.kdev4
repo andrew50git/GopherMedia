@@ -28,12 +28,12 @@ pattern=*.kate-swp
 targets=3
 
 [Launch]
-Launch Configurations=Launch Configuration 0
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=nativeAppLauncher
-Name=test binary
+Name=test3d
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
@@ -42,6 +42,24 @@ Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00
 Dependency Action=Build
 EnvironmentGroup=
 Executable=file:///home/andrew/Documents/Programs/C++/GopherMedia/bin/test3d
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=
+Use External Terminal=false
+Working Directory=
+isExecutable=true
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=test2d
+Type=Native Application
+
+[Launch][Launch Configuration 1][Data]
+Arguments=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x16\x00G\x00o\x00p\x00h\x00e\x00r\x00M\x00e\x00d\x00i\x00a)
+Dependency Action=Build
+EnvironmentGroup=
+Executable=file:///home/andrew/Documents/Programs/C++/GopherMedia/bin/test2d
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false

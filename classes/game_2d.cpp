@@ -83,6 +83,14 @@ void Game2D::Image::Render(int x, int y, int width, int height) {
         SDL_Log("Attempted to render broken image");
         return;
     }
+    if (width < 0) {
+        SDL_Log("Width is less than 0: %d", width);
+        return;
+    }
+    if (height < 0) {
+        SDL_Log("Height is less than 0: %d", height);
+        return;
+    }
     SDL_Rect rect {
         x,
         y,
@@ -96,6 +104,14 @@ void Game2D::Image::Render(int x, int y, int width, int height, const double ang
                            ImageFlip flip) {
     if (!initialized) {
         SDL_Log("Attempted to render broken image");
+        return;
+    }
+    if (width < 0) {
+        SDL_Log("Width is less than 0: %d", width);
+        return;
+    }
+    if (height < 0) {
+        SDL_Log("Height is less than 0: %d", height);
         return;
     }
     SDL_Rect rect {
@@ -177,6 +193,14 @@ void Game2D::Font::Render(std::string text, int x, int y, const double angle, st
 }
 
 void Game2D::Rectangle(int x, int y, int width, int height, std::array<Uint8, 4> color) {
+    if (width < 0) {
+        SDL_Log("Width is less than 0: %d", width);
+        return;
+    }
+    if (height < 0) {
+        SDL_Log("Height is less than 0: %d", height);
+        return;
+    }
     SDL_Rect rect {
         x,
         y,
