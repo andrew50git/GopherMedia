@@ -3,7 +3,7 @@
  * Game3D methods
 */
 
-Game3D::Game3D(std::string title, int x, int y, int width, int height, float frame_rate) {
+Game3D::Game3D(std::string title, int x, int y, int width, int height, float frame_rate_arg) {
     int sdl_result = SDL_Init(SDL_INIT_VIDEO);
     if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
@@ -26,7 +26,7 @@ Game3D::Game3D(std::string title, int x, int y, int width, int height, float fra
     initialized = true;
     is_running = true;
     ticks_count = 0;
-    frame_rate_attr = frame_rate;
+    frame_rate = frame_rate_arg;
     gl_context = SDL_GL_CreateContext(window);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);

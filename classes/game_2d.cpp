@@ -4,18 +4,18 @@
  * Game2D Methods
 */
 
-Game2D::Game2D(std::string title, int x, int y, int width, int height, float frame_rate) {
+Game2D::Game2D(std::string title, int x, int y, int width, int height, float frame_rate_arg) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     int sdl_result = SDL_Init(SDL_INIT_VIDEO);
     int sdl_ttf_result = TTF_Init();
     if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
-            initialized = false;
+        initialized = false;
         return;
     }
     if (sdl_ttf_result != 0) {
         SDL_Log("SDL font initialization error: %s", SDL_GetError());
-            initialized = false;
+        initialized = false;
         return;
     }
     window = SDL_CreateWindow(
@@ -28,7 +28,7 @@ Game2D::Game2D(std::string title, int x, int y, int width, int height, float fra
     );
     if (!window) {
         SDL_Log("Window creation error: %s", SDL_GetError());
-            initialized = false;
+        initialized = false;
         return;
     }
     renderer = SDL_CreateRenderer(
@@ -39,7 +39,7 @@ Game2D::Game2D(std::string title, int x, int y, int width, int height, float fra
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     is_running = true;
     ticks_count = 0;
-    frame_rate_attr = frame_rate;
+    frame_rate = frame_rate_arg;
 }
 
 void Game2D::Update() {
@@ -61,7 +61,7 @@ void Game2D::ShowOutput() {
 }
 
 void Game2D::WaitUntilFrame() {
-    while (!SDL_TICKS_PASSED(SDL_GetTicks(), ticks_count + 1000.0f / frame_rate_attr));
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), ticks_count + 1000.0f / frame_rate));
     float delta_time = (SDL_GetTicks() - ticks_count) / 1000.0f;
     if (delta_time > 0.05f) {
         delta_time = 0.05f;

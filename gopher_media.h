@@ -52,7 +52,7 @@ private:
     void ProcessInput();
     SDL_Window* window;
     Uint32 ticks_count;
-    float frame_rate_attr;
+    float frame_rate;
     bool initialized;
     bool is_running;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
@@ -95,7 +95,7 @@ public:
         bool initialized = true;
     friend class Game2D;
     };
-    Game2D(std::string title, int x, int y, int width, int height, float frame_rate);
+    Game2D(std::string title, int x, int y, int width, int height, float frame_rate_arg);
     void Update();
     void Delete();
     void ShowOutput();
@@ -182,7 +182,7 @@ public:
         Eigen::Matrix4f world_transform;
     friend class Game3D;
     };
-    Game3D(std::string title, int x, int y, int width, int height, float frame_rate);
+    Game3D(std::string title, int x, int y, int width, int height, float frame_rate_arg);
     void Update();
     //TODO: chain reaction deletion (try to make it so that you only need to call this to delete everything)
     void Delete();
