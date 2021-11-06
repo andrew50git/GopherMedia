@@ -144,7 +144,6 @@ bool Game3D::BaseShader::Compile(std::string content, GLenum type, GLuint& out) 
     return true;
 }
 
-//TODO: error length detection
 bool Game3D::BaseShader::CheckShader(GLuint arg_shader) {
     GLint status;
     glGetShaderiv(arg_shader, GL_COMPILE_STATUS, &status);
@@ -182,25 +181,189 @@ void Game3D::BaseShader::Delete() {
     glDeleteShader(fragment_shader);
 }
 
-void Game3D::BaseShader::SetInput(std::string name, Eigen::Matrix4f matrix) {
+void Game3D::BaseShader::SetInput(std::string name, Eigen::MatrixXf matrix) {
     GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-    glUniformMatrix4fv(
-        input_loc,
-        1,
-        GL_TRUE,
-        matrix.data()
-    );
+    int rows = matrix.rows();
+    int cols = matrix.cols();
+    if (rows == 2 && cols == 2) {
+        glUniformMatrix2fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 2 && cols == 3) {
+        glUniformMatrix2x3fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 3 && cols == 2) {
+        glUniformMatrix3x2fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 3 && cols == 3) {
+        glUniformMatrix3fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 3 && cols == 4) {
+        glUniformMatrix3x4fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 4 && cols == 3) {
+        glUniformMatrix4x3fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    } else if (rows == 4 && cols == 4) {
+        glUniformMatrix4fv(
+            input_loc,
+            1,
+            GL_TRUE,
+            matrix.data()
+        );
+    }
 }
 
-void Game3D::BaseShader::SetInput(std::string name, std::array<float, 4> color) {
-    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-    glUniform4f(
-        input_loc,
-        color[0],
-        color[1],
-        color[2],
-        color[3]
-    );
+void Game3D::BaseShader::SetInput(std::string name, std::vector<unsigned int> vector) {
+    switch(vector.size()) {
+        case 1: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform1ui(
+                input_loc,
+                vector[0]
+            );
+            break;
+        }
+        case 2: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform2ui(
+                input_loc,
+                vector[0],
+                vector[1]
+            );
+            break;
+        }
+        case 3: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform3ui(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2]
+            );
+            break;
+        }
+        case 4: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform4ui(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2],
+                vector[3]
+            );
+            break;
+        }
+    }
+}
+
+void Game3D::BaseShader::SetInput(std::string name, std::vector<float> vector) {
+    switch(vector.size()) {
+        case 1: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform1f(
+                input_loc,
+                vector[0]
+            );
+            break;
+        }
+        case 2: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform2f(
+                input_loc,
+                vector[0],
+                vector[1]
+            );
+            break;
+        }
+        case 3: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform3f(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2]
+            );
+            break;
+        }
+        case 4: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform4f(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2],
+                vector[3]
+            );
+            break;
+        }
+    }
+}
+
+void Game3D::BaseShader::SetInput(std::string name, std::vector<int> vector) {
+    switch(vector.size()) {
+        case 1: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform1i(
+                input_loc,
+                vector[0]
+            );
+            break;
+        }
+        case 2: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform2i(
+                input_loc,
+                vector[0],
+                vector[1]
+            );
+            break;
+        }
+        case 3: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform3i(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2]
+            );
+            break;
+        }
+        case 4: {
+            GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+            glUniform4i(
+                input_loc,
+                vector[0],
+                vector[1],
+                vector[2],
+                vector[3]
+            );
+            break;
+        }
+    }
 }
 
 Game3D::CustomShader::CustomShader(std::string vertex_file_path, std::string fragment_file_path) {

@@ -142,12 +142,12 @@ int Game2D::Image::GetHeight() {
     return height;
 }
 
-void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> color) {
+void Game2D::Font::Render(std::string text, int x, int y, Color color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
-    SDL_Color SDL_color = {color[0], color[1], color[2], color[3]};
+    SDL_Color SDL_color = {color.r, color.g, color.b, color.a};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
     int text_width, text_height;
@@ -162,12 +162,12 @@ void Game2D::Font::Render(std::string text, int x, int y, std::array<Uint8, 4> c
 }
 
 void Game2D::Font::Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point, 
-                          ImageFlip flip, std::array<Uint8, 4> color) {
+                          ImageFlip flip, Color color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
-    SDL_Color SDL_color = {color[0], color[1], color[2], color[3]};
+    SDL_Color SDL_color = {color.r, color.g, color.b, color.a};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
     int text_width, text_height;
@@ -192,7 +192,7 @@ void Game2D::Font::Render(std::string text, int x, int y, const double angle, st
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
 }
 
-void Game2D::Rectangle(int x, int y, int width, int height, std::array<Uint8, 4> color) {
+void Game2D::Rectangle(int x, int y, int width, int height, Color color) {
     if (width < 0) {
         SDL_Log("Width is less than 0: %d", width);
         return;
@@ -209,10 +209,10 @@ void Game2D::Rectangle(int x, int y, int width, int height, std::array<Uint8, 4>
     };
     SDL_SetRenderDrawColor(
         renderer,
-        color[0],
-        color[1],
-        color[2],
-        color[3]
+        color.r,
+        color.g,
+        color.b,
+        color.a
     );
     SDL_RenderFillRect(renderer, &rect);
 }

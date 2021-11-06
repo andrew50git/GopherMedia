@@ -14,6 +14,7 @@
 #include <eigen3/Eigen/Geometry>
 #include <fstream>
 #include <sstream>
+#include <functional>
 
 enum ImageFlip {
     vertical,
@@ -35,6 +36,12 @@ enum ShaderType {
     textured,
     solid_color_lighting,
     textured_lighting
+};
+struct Color {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char a;
 };
 
 class BaseGame {
@@ -85,9 +92,9 @@ public:
     class Font {
     public:
         Font() {};
-        void Render(std::string text, int x, int y, std::array<Uint8, 4> color);
+        void Render(std::string text, int x, int y, Color color);
         void Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point,
-                    ImageFlip flip, std::array<Uint8, 4> color);
+                    ImageFlip flip, Color color);
         void Delete();
     private:
         TTF_Font* SDL_font;
@@ -100,10 +107,9 @@ public:
     void Delete();
     void ShowOutput();
     void StopLoop();
-    //TODO: figure out how to eliminate next two methods and make a constructor instead
     Image CreateImage(std::string file_path);
     Font CreateFont(std::string file_path, int size);
-    void Rectangle(int startx, int starty, int endx, int endy, std::array<Uint8, 4> color);
+    void Rectangle(int x, int y, int width, int height, Color color);
 private:
     void WaitUntilFrame();
     SDL_Renderer* renderer;
@@ -133,8 +139,10 @@ public:
     public:
         bool GetSuccess();
         void Delete();
-        void SetInput(std::string name, Eigen::Matrix4f matrix);
-        void SetInput(std::string name, std::array<float, 4> color);
+        void SetInput(std::string name, Eigen::MatrixXf matrix);
+        void SetInput(std::string name, std::vector<unsigned int> vector);
+        void SetInput(std::string name, std::vector<float> vector);
+        void SetInput(std::string name, std::vector<int> vector);
         virtual std::string PrintName() = 0;
     private:
         bool Compile(std::string content, GLenum type, GLuint& out);
@@ -184,7 +192,6 @@ public:
     };
     Game3D(std::string title, int x, int y, int width, int height, float frame_rate_arg);
     void Update();
-    //TODO: chain reaction deletion (try to make it so that you only need to call this to delete everything)
     void Delete();
     void DrawObject(Object& object, BaseShader& shader, Camera& camera);
     void ShowOutput();

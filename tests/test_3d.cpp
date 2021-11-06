@@ -22,7 +22,7 @@ void test_Game3D() {
         while (game.GetIsRunning()) {
             game.Update();
             object.SetRotation(Axis::x, rot);
-            shader.SetInput("color", std::array<float, 4>({1.0, 0.5, 0.0, 1.0}));
+            shader.SetInput("color", (std::vector<float>) {1.0, 0.5, 0.0, 1.0});
             game.DrawObject(object, shader, camera);
             rot += 0.1;
             game.ShowOutput();
