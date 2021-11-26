@@ -14,35 +14,49 @@
 #include <eigen3/Eigen/Geometry>
 #include <fstream>
 #include <sstream>
-#include <functional>
 
 enum ImageFlip {
     vertical,
     horizontal,
     none
 };
+
 enum MouseButton {
     left,
     middle,
     right
 };
+
 enum Axis {
     x,
     y,
     z
 };
+
 enum ShaderType {
     solid_color,
     textured,
     solid_color_lighting,
     textured_lighting
 };
+
 struct Color {
     unsigned char r;
     unsigned char g;
     unsigned char b;
     unsigned char a;
 };
+
+struct Rectangle {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
+Eigen::AlignedBox2i MakeRectangle(int x, int y, int width, int height) {
+    return Eigen::AlignedBox2i({Eigen::Vector2i({x, y}), Eigen::Vector2i({x + width, y + height})});
+}
 
 class BaseGame {
 public:
@@ -53,7 +67,7 @@ public:
     void StopLoop();
     bool GetIsRunning();
     bool GetKeyboardState(int keycode);
-    std::array<int, 2> GetMousePos();
+    Eigen::Vector2i GetMousePos();
     bool GetMouseButton(MouseButton button);
 private:
     void ProcessInput();
@@ -63,7 +77,7 @@ private:
     bool initialized;
     bool is_running;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
-    int mouse_x, mouse_y;
+    Eigen::Vector2i mouse_pos;
     Uint32 mouse_buttons;
 friend class Game2D;
 friend class Game3D;
@@ -77,39 +91,39 @@ public:
         Image() {};
         int GetWidth();
         int GetHeight();
-        void Render(int x, int y, int width, int height);
-        void Render(int x, int y, int width, int height, const double angle,
-                    std::array<int, 2> rotation_point, ImageFlip flip);
+        void Render(Eigen::AlignedBox2i rectangle);
+        void Render(Eigen::AlignedBox2i rectangle, const double angle,
+                    Eigen::Vector2i rotation_point, ImageFlip flip);
         void Delete();
     private:
         int width;
         int height;
         SDL_Texture* SDL_image;
         SDL_Renderer* renderer;
-        bool initialized = true;
+        bool initialized = false;
     friend class Game2D;
     };
     class Font {
     public:
         Font() {};
-        void Render(std::string text, int x, int y, Color color);
-        void Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point,
+        void Render(std::string text, Eigen::Vector2i text_pos, Color color);
+        void Render(std::string text, Eigen::Vector2i text_pos, const double angle, Eigen::Vector2i rotation_point,
                     ImageFlip flip, Color color);
         void Delete();
     private:
         TTF_Font* SDL_font;
         SDL_Renderer* renderer;
-        bool initialized = true;
+        bool initialized = false;
     friend class Game2D;
     };
-    Game2D(std::string title, int x, int y, int width, int height, float frame_rate_arg);
+    Game2D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg);
     void Update();
     void Delete();
     void ShowOutput();
     void StopLoop();
     Image CreateImage(std::string file_path);
     Font CreateFont(std::string file_path, int size);
-    void Rectangle(int x, int y, int width, int height, Color color);
+    void RenderRectangle(Eigen::AlignedBox2i rectangle, Color color);
 private:
     void WaitUntilFrame();
     SDL_Renderer* renderer;
@@ -175,7 +189,7 @@ public:
     public:
         Object(const float* vertices, unsigned int num_vertices, const unsigned int* indices,
                  unsigned int num_indices);
-        void SetPosition(float x, float y, float z);
+        void SetPosition(Eigen::Vector3f arg_position);
         void SetRotation(Axis axis, float angle);
         void SetScale(float new_scale);
         void Delete();
@@ -190,7 +204,7 @@ public:
         Eigen::Matrix4f world_transform;
     friend class Game3D;
     };
-    Game3D(std::string title, int x, int y, int width, int height, float frame_rate_arg);
+    Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg);
     void Update();
     void Delete();
     void DrawObject(Object& object, BaseShader& shader, Camera& camera);

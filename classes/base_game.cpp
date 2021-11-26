@@ -14,17 +14,17 @@ void BaseGame::ProcessInput() {
             break;
         }
     }
-    mouse_buttons = SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+    mouse_buttons = SDL_GetGlobalMouseState(&mouse_pos(0), &mouse_pos(1));
 }
 
 bool BaseGame::GetKeyboardState(int keycode) {
     return keys[SDL_GetScancodeFromKey(keycode)];
 }
 
-std::array<int, 2> BaseGame::GetMousePos() {
-    int window_x, window_y;
-    SDL_GetWindowPosition(window, &window_x, &window_y);
-    return {mouse_x - window_x, mouse_y - window_y};
+Eigen::Vector2i BaseGame::GetMousePos() {
+    Eigen::Vector2i window_pos;
+    SDL_GetWindowPosition(window, &window_pos(0), &window_pos(1));
+    return {mouse_pos(0) - window_pos(0), mouse_pos(1) - window_pos(1)};
 }
 
 bool BaseGame::GetMouseButton(MouseButton button) {

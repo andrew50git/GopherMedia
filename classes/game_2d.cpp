@@ -4,7 +4,7 @@
  * Game2D Methods
 */
 
-Game2D::Game2D(std::string title, int x, int y, int width, int height, float frame_rate_arg) {
+Game2D::Game2D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     int sdl_result = SDL_Init(SDL_INIT_VIDEO);
     int sdl_ttf_result = TTF_Init();
@@ -20,10 +20,10 @@ Game2D::Game2D(std::string title, int x, int y, int width, int height, float fra
     }
     window = SDL_CreateWindow(
         title.c_str(),
-        x,
-        y,
-        width,
-        height,
+        rectangle.min()(0),
+        rectangle.min()(1),
+        rectangle.max()(0) - rectangle.min()(0),
+        rectangle.max()(1) - rectangle.min()(1),
         0
     );
     if (!window) {
@@ -78,7 +78,7 @@ void Game2D::Delete() {
  * Subclasses: Image, Font
 */
 
-void Game2D::Image::Render(int x, int y, int width, int height) {
+void Game2D::Image::Render(Eigen::AlignedBox2i rectangle) {
     if (!initialized) {
         SDL_Log("Attempted to render broken image");
         return;
@@ -92,15 +92,15 @@ void Game2D::Image::Render(int x, int y, int width, int height) {
         return;
     }
     SDL_Rect rect {
-        x,
-        y,
-        width,
-        height,
+        rectangle.min()(0),
+        rectangle.min()(1),
+        rectangle.max()(0) - rectangle.min()(0),
+        rectangle.max()(1) - rectangle.min()(1)
     };
     SDL_RenderCopyEx(renderer, SDL_image, NULL, &rect, 0, NULL, SDL_FLIP_NONE);
 }
 
-void Game2D::Image::Render(int x, int y, int width, int height, const double angle, std::array<int, 2> rotation_point, 
+void Game2D::Image::Render(Eigen::AlignedBox2i rectangle, const double angle, Eigen::Vector2i rotation_point, 
                            ImageFlip flip) {
     if (!initialized) {
         SDL_Log("Attempted to render broken image");
@@ -115,14 +115,14 @@ void Game2D::Image::Render(int x, int y, int width, int height, const double ang
         return;
     }
     SDL_Rect rect {
-        x,
-        y,
-        width,
-        height
+        rectangle.min()(0),
+        rectangle.min()(1),
+        rectangle.max()(0) - rectangle.min()(0),
+        rectangle.max()(1) - rectangle.min()(1)
     };
     SDL_Point SDL_rotation_point {
-        rotation_point[0],
-        rotation_point[1]
+        rotation_point(0),
+        rotation_point(1)
     };
     SDL_RendererFlip SDL_flip = SDL_FLIP_NONE;
     if (flip == horizontal) {
@@ -142,7 +142,7 @@ int Game2D::Image::GetHeight() {
     return height;
 }
 
-void Game2D::Font::Render(std::string text, int x, int y, Color color) {
+void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, Color color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
@@ -153,15 +153,15 @@ void Game2D::Font::Render(std::string text, int x, int y, Color color) {
     int text_width, text_height;
     SDL_QueryTexture(SDL_text_image, NULL, NULL, &text_width, &text_height);
     SDL_Rect rect {
-        x,
-        y,
+        text_pos(0),
+        text_pos(1),
         text_width,
         text_height
     };
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, 0, NULL, SDL_FLIP_NONE);
 }
 
-void Game2D::Font::Render(std::string text, int x, int y, const double angle, std::array<int, 2> rotation_point, 
+void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, const double angle, Eigen::Vector2i rotation_point, 
                           ImageFlip flip, Color color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
@@ -173,14 +173,14 @@ void Game2D::Font::Render(std::string text, int x, int y, const double angle, st
     int text_width, text_height;
     SDL_QueryTexture(SDL_text_image, NULL, NULL, &text_width, &text_height);
     SDL_Rect rect {
-        x,
-        y,
+        text_pos(0),
+        text_pos(1),
         text_width,
         text_height
     };
     SDL_Point SDL_rotation_point {
-        rotation_point[0],
-        rotation_point[1]
+        rotation_point(0),
+        rotation_point(1)
     };
     SDL_RendererFlip SDL_flip = SDL_FLIP_NONE;
     if (flip == horizontal) {
@@ -192,20 +192,20 @@ void Game2D::Font::Render(std::string text, int x, int y, const double angle, st
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
 }
 
-void Game2D::Rectangle(int x, int y, int width, int height, Color color) {
-    if (width < 0) {
-        SDL_Log("Width is less than 0: %d", width);
+void Game2D::RenderRectangle(Eigen::AlignedBox2i rectangle, Color color) {
+    if (rectangle.max()(0) - rectangle.min()(0) < 0) {
+        SDL_Log("Width is less than 0: %d", rectangle.max()(0) - rectangle.min()(0));
         return;
     }
-    if (height < 0) {
-        SDL_Log("Height is less than 0: %d", height);
+    if (rectangle.max()(1) - rectangle.min()(1) < 0) {
+        SDL_Log("Height is less than 0: %d", rectangle.max()(1) - rectangle.min()(1));
         return;
     }
     SDL_Rect rect {
-        x,
-        y,
-        width,
-        height
+        rectangle.min()(0),
+        rectangle.min()(1),
+        rectangle.max()(0) - rectangle.min()(0),
+        rectangle.max()(1) - rectangle.min()(1)
     };
     SDL_SetRenderDrawColor(
         renderer,
@@ -219,6 +219,7 @@ void Game2D::Rectangle(int x, int y, int width, int height, Color color) {
 
 Game2D::Image Game2D::CreateImage(std::string file_path) {
     Image res_img;
+    res_img.initialized = true;
     res_img.renderer = renderer;
     res_img.SDL_image = IMG_LoadTexture(renderer, file_path.c_str());
     if (res_img.SDL_image == NULL) {
@@ -232,6 +233,7 @@ Game2D::Image Game2D::CreateImage(std::string file_path) {
 
 Game2D::Font Game2D::CreateFont(std::string file_path, int size) {
     Font res_font;
+    res_font.initialized = true;
     res_font.renderer = renderer;
     res_font.SDL_font = TTF_OpenFont(file_path.c_str(), size);
     if (res_font.SDL_font == NULL) {

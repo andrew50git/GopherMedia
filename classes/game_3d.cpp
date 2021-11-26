@@ -3,7 +3,7 @@
  * Game3D methods
 */
 
-Game3D::Game3D(std::string title, int x, int y, int width, int height, float frame_rate_arg) {
+Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg) {
     int sdl_result = SDL_Init(SDL_INIT_VIDEO);
     if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
@@ -12,10 +12,10 @@ Game3D::Game3D(std::string title, int x, int y, int width, int height, float fra
     }
     window = SDL_CreateWindow(
         title.c_str(),
-        x,
-        y,
-        width,
-        height,
+        rectangle.min()(0),
+        rectangle.min()(1),
+        rectangle.max()(0) - rectangle.min()(0),
+        rectangle.max()(1) - rectangle.min()(1),
         SDL_WINDOW_OPENGL
     ); 
     if (!window) {
@@ -411,8 +411,8 @@ void Game3D::Object::Delete() {
     vertex_array.Delete();
 }
 
-void Game3D::Object::SetPosition(float x, float y, float z) {
-    position = {x, y, z};
+void Game3D::Object::SetPosition(Eigen::Vector3f arg_position) {
+    position = arg_position;
     ComputeWorldTransform();
 }
 
