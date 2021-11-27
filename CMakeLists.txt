@@ -7,8 +7,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
-include_directories(/usr/include/SDL2 .)
-link_directories(/usr/lib/x86_64-linux-gnu /usr/lib64)
+
+
 
 add_library(SDL2 SHARED IMPORTED)
 add_library(SDL2_image SHARED IMPORTED)

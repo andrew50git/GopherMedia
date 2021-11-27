@@ -2,7 +2,7 @@
 #include <iostream>
 
 void test_Game3D() {
-    Game3D game("gopher_media", MakeRectangle(100, 100, 1024, 512), 60.0f);
+    Game3D game("gopher_media", Rectangle(100, 100, 1024, 512), 60.0f);
     const float vertex_buffer[] = {
         -0.5f, 0.5f, 0.0f,
         0.5f, 0.5f, 0.0f,
@@ -23,7 +23,7 @@ void test_Game3D() {
             game.Update();
             object.SetRotation(x, rot);
             shader.SetInput("color", std::vector<float>({1.0, 0.5, 0.0, 1.0}));
-            game.DrawObject(object, shader, camera);
+            game.RenderObject(object, shader, camera);
             rot += 0.1;
             game.ShowOutput();
         }

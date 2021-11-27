@@ -142,12 +142,12 @@ int Game2D::Image::GetHeight() {
     return height;
 }
 
-void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, Color color) {
+void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, Eigen::Vector4uc color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
-    SDL_Color SDL_color = {color.r, color.g, color.b, color.a};
+    SDL_Color SDL_color = {color(0), color(1), color(2), color(3)};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
     int text_width, text_height;
@@ -162,12 +162,12 @@ void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, Color colo
 }
 
 void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, const double angle, Eigen::Vector2i rotation_point, 
-                          ImageFlip flip, Color color) {
+                          ImageFlip flip, Eigen::Vector4uc color) {
     if (!initialized) {
         SDL_Log("Attempted to render broken font");
         return;
     }
-    SDL_Color SDL_color = {color.r, color.g, color.b, color.a};
+    SDL_Color SDL_color = {color(0), color(1), color(2), color(3)};
     SDL_Surface* SDL_text_surface = TTF_RenderText_Solid(SDL_font, text.c_str(), SDL_color);
     SDL_Texture* SDL_text_image = SDL_CreateTextureFromSurface(renderer, SDL_text_surface);
     int text_width, text_height;
@@ -192,7 +192,7 @@ void Game2D::Font::Render(std::string text, Eigen::Vector2i text_pos, const doub
     SDL_RenderCopyEx(renderer, SDL_text_image, NULL, &rect, angle, &SDL_rotation_point, SDL_flip);
 }
 
-void Game2D::RenderRectangle(Eigen::AlignedBox2i rectangle, Color color) {
+void Game2D::RenderRectangle(Eigen::AlignedBox2i rectangle, Eigen::Vector4uc color) {
     if (rectangle.max()(0) - rectangle.min()(0) < 0) {
         SDL_Log("Width is less than 0: %d", rectangle.max()(0) - rectangle.min()(0));
         return;
@@ -209,10 +209,10 @@ void Game2D::RenderRectangle(Eigen::AlignedBox2i rectangle, Color color) {
     };
     SDL_SetRenderDrawColor(
         renderer,
-        color.r,
-        color.g,
-        color.b,
-        color.a
+        color(0),
+        color(1),
+        color(2),
+        color(3)
     );
     SDL_RenderFillRect(renderer, &rect);
 }

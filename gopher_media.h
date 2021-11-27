@@ -15,6 +15,11 @@
 #include <fstream>
 #include <sstream>
 
+namespace Eigen {
+    typedef Matrix<unsigned char, 4, 1> Vector4uc;
+};
+
+
 enum ImageFlip {
     vertical,
     horizontal,
@@ -40,22 +45,12 @@ enum ShaderType {
     textured_lighting
 };
 
-struct Color {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    unsigned char a;
-};
-
-struct Rectangle {
-    int x;
-    int y;
-    int width;
-    int height;
-};
-
-Eigen::AlignedBox2i MakeRectangle(int x, int y, int width, int height) {
+Eigen::AlignedBox2i Rectangle(int x, int y, int width, int height) {
     return Eigen::AlignedBox2i({Eigen::Vector2i({x, y}), Eigen::Vector2i({x + width, y + height})});
+}
+
+Eigen::Vector4uc Color(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    return Eigen::Vector4uc({r, g, b, a});
 }
 
 class BaseGame {
@@ -106,9 +101,9 @@ public:
     class Font {
     public:
         Font() {};
-        void Render(std::string text, Eigen::Vector2i text_pos, Color color);
+        void Render(std::string text, Eigen::Vector2i text_pos, Eigen::Vector4uc color);
         void Render(std::string text, Eigen::Vector2i text_pos, const double angle, Eigen::Vector2i rotation_point,
-                    ImageFlip flip, Color color);
+                    ImageFlip flip, Eigen::Vector4uc color);
         void Delete();
     private:
         TTF_Font* SDL_font;
@@ -123,7 +118,7 @@ public:
     void StopLoop();
     Image CreateImage(std::string file_path);
     Font CreateFont(std::string file_path, int size);
-    void RenderRectangle(Eigen::AlignedBox2i rectangle, Color color);
+    void RenderRectangle(Eigen::AlignedBox2i rectangle, Eigen::Vector4uc color);
 private:
     void WaitUntilFrame();
     SDL_Renderer* renderer;
@@ -207,7 +202,7 @@ public:
     Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg);
     void Update();
     void Delete();
-    void DrawObject(Object& object, BaseShader& shader, Camera& camera);
+    void RenderObject(Object& object, BaseShader& shader, Camera& camera);
     void ShowOutput();
     void StopLoop();
 };

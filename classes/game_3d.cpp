@@ -58,7 +58,7 @@ void Game3D::Update() {
     ProcessInput();
 }
 
-void Game3D::DrawObject(Object& object, BaseShader& shader, Camera& camera) {
+void Game3D::RenderObject(Object& object, BaseShader& shader, Camera& camera) {
     shader.SetActive();
     glBindVertexArray(object.vertex_array.vertex_array);
     shader.SetInput("world_transform", object.world_transform);
