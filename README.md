@@ -5,7 +5,9 @@ c++ wrapper of sdl2
 no tutorial for now, just look at gopher_media.h and use your brain.
 
 # Dependencies
-SDL2 and GLEW
+SDL2, Eigen 3, and GLEW
+
+Note that you probably need to update your include/link paths for GopherMedia to compile successfully.
 
 # Screenshot
 ![an orange square slightly tilted](screenshots/gophermedia1.png)
