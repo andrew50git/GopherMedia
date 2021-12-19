@@ -1,9 +1,6 @@
-#include "../gopher_media.h"
-/*
- * Game3D methods
-*/
+#include "game_3d.h"
 
-Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rate_arg) {
+Game3D::Game3D(std::string title, RectangleI rectangle, float frame_rate_arg) {
     int sdl_result = SDL_Init(SDL_INIT_VIDEO);
     if (sdl_result != 0) {
         SDL_Log("SDL initialization error: %s", SDL_GetError());
@@ -12,10 +9,10 @@ Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rat
     }
     window = SDL_CreateWindow(
         title.c_str(),
-        rectangle.min()(0),
-        rectangle.min()(1),
-        rectangle.max()(0) - rectangle.min()(0),
-        rectangle.max()(1) - rectangle.min()(1),
+        rectangle.x,
+        rectangle.y,
+        rectangle.width,
+        rectangle.height,
         SDL_WINDOW_OPENGL
     ); 
     if (!window) {
@@ -23,7 +20,6 @@ Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rat
         initialized = false;
         return;
     }
-    initialized = true;
     is_running = true;
     ticks_count = 0;
     frame_rate = frame_rate_arg;
@@ -37,6 +33,8 @@ Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rat
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
     glewExperimental = GL_TRUE;
     int glewResult = glewInit();
     if (glewResult != GLEW_OK) {
@@ -45,6 +43,7 @@ Game3D::Game3D(std::string title, Eigen::AlignedBox2i rectangle, float frame_rat
         return;
     }
     glGetError();
+    initialized = true;
 }
 
 void Game3D::Delete() {
@@ -61,8 +60,8 @@ void Game3D::Update() {
 void Game3D::RenderObject(Object& object, BaseShader& shader, Camera& camera) {
     shader.SetActive();
     glBindVertexArray(object.vertex_array.vertex_array);
-    shader.SetInput("world_transform", object.world_transform);
-    shader.SetInput("view_projection", camera.view_matrix * camera.projection_matrix);
+    shader.SetInputF("world_transform", object.world_transform);
+    shader.SetInputF("view_projection", camera.view_matrix * camera.projection_matrix);
     glDrawElements(
         GL_TRIANGLES,
         object.vertex_array.GetNumIndices(),
@@ -181,190 +180,209 @@ void Game3D::BaseShader::Delete() {
     glDeleteShader(fragment_shader);
 }
 
-void Game3D::BaseShader::SetInput(std::string name, Eigen::MatrixXf matrix) {
+void Game3D::BaseShader::SetInputF(std::string name, Eigen::MatrixXf matrix) {
     GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
     int rows = matrix.rows();
     int cols = matrix.cols();
     if (rows == 2 && cols == 2) {
-        glUniformMatrix2fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix2fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 2 && cols == 3) {
-        glUniformMatrix2x3fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix2x3fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 3 && cols == 2) {
-        glUniformMatrix3x2fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix3x2fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 3 && cols == 3) {
-        glUniformMatrix3fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix3fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 3 && cols == 4) {
-        glUniformMatrix3x4fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix3x4fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 4 && cols == 3) {
-        glUniformMatrix4x3fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix4x3fv(input_loc, 1, GL_TRUE, matrix.data());
     } else if (rows == 4 && cols == 4) {
-        glUniformMatrix4fv(
-            input_loc,
-            1,
-            GL_TRUE,
-            matrix.data()
-        );
+        glUniformMatrix4fv(input_loc, 1, GL_TRUE, matrix.data());
+    } else if (rows == 2 && cols == 1) {
+        glUniform2f(input_loc, matrix(0), matrix(1));
+    } else if (rows == 3 && cols == 1) {
+        glUniform3f(input_loc, matrix(0), matrix(1), matrix(2));
+    } else if (rows == 4 && cols == 1) {
+        glUniform4f(input_loc, matrix(0), matrix(1), matrix(2), matrix(3));
+    } else {
+        SDL_Log("Tried to set input to invalid Eigen matrix/vector size");
     }
 }
 
-void Game3D::BaseShader::SetInput(std::string name, std::vector<unsigned int> vector) {
+void Game3D::BaseShader::SetInputI(std::string name, Eigen::VectorXi vector) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    int rows = vector.rows();
+    int cols = vector.cols();
+    if (rows == 2 && cols == 1) {
+        glUniform2f(input_loc, vector(0), vector(1));
+    } else if (rows == 3 && cols == 1) {
+        glUniform3f(input_loc, vector(0), vector(1), vector(2));
+    } else if (rows == 4 && cols == 1) {
+        glUniform4f(input_loc, vector(0), vector(1), vector(2), vector(3));
+    } else {
+        SDL_Log("Tried to set input to invalid Eigen vector size");
+    }
+}
+
+void Game3D::BaseShader::SetInputUI(std::string name, std::vector<unsigned int> vector) {
     switch(vector.size()) {
         case 1: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform1ui(
-                input_loc,
-                vector[0]
-            );
+            glUniform1ui(input_loc, vector[0]);
             break;
         }
         case 2: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform2ui(
-                input_loc,
-                vector[0],
-                vector[1]
-            );
+            glUniform2ui(input_loc, vector[0], vector[1]);
             break;
         }
         case 3: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform3ui(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2]
-            );
+            glUniform3ui(input_loc, vector[0], vector[1], vector[2]);
             break;
         }
         case 4: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform4ui(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2],
-                vector[3]
-            );
+            glUniform4ui(input_loc, vector[0], vector[1], vector[2], vector[3]);
             break;
+        }
+        default: {
+            SDL_Log("Tried to set input to invalid vector size");
         }
     }
 }
 
-void Game3D::BaseShader::SetInput(std::string name, std::vector<float> vector) {
+void Game3D::BaseShader::SetInputF(std::string name, std::vector<float> vector) {
     switch(vector.size()) {
         case 1: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform1f(
-                input_loc,
-                vector[0]
-            );
+            glUniform1f(input_loc, vector[0]);
             break;
         }
         case 2: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform2f(
-                input_loc,
-                vector[0],
-                vector[1]
-            );
+            glUniform2f(input_loc, vector[0], vector[1]);
             break;
         }
         case 3: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform3f(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2]
-            );
+            glUniform3f(input_loc, vector[0], vector[1], vector[2]);
             break;
         }
         case 4: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform4f(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2],
-                vector[3]
-            );
+            glUniform4f(input_loc, vector[0], vector[1], vector[2], vector[3]);
             break;
+        }
+        default: {
+            SDL_Log("Tried to set input to invalid vector size");
         }
     }
 }
 
-void Game3D::BaseShader::SetInput(std::string name, std::vector<int> vector) {
+void Game3D::BaseShader::SetInputI(std::string name, std::vector<int> vector) {
     switch(vector.size()) {
         case 1: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform1i(
-                input_loc,
-                vector[0]
-            );
+            glUniform1i(input_loc, vector[0]);
             break;
         }
         case 2: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform2i(
-                input_loc,
-                vector[0],
-                vector[1]
-            );
+            glUniform2i(input_loc, vector[0], vector[1]);
             break;
         }
         case 3: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform3i(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2]
-            );
+            glUniform3i(input_loc, vector[0], vector[1], vector[2]);
             break;
         }
         case 4: {
             GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
-            glUniform4i(
-                input_loc,
-                vector[0],
-                vector[1],
-                vector[2],
-                vector[3]
-            );
+            glUniform4i(input_loc, vector[0], vector[1], vector[2], vector[3]);
             break;
+        }
+        default: {
+            SDL_Log("Tried to set input to invalid vector size");
         }
     }
 }
+
+void Game3D::BaseShader::SetInputF(std::string name, std::array<float, 1> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform1f(input_loc, array[0]);
+}
+
+void Game3D::BaseShader::SetInputF(std::string name, std::array<float, 2> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform2f(input_loc, array[0], array[1]);
+}
+
+void Game3D::BaseShader::SetInputF(std::string name, std::array<float, 3> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform3f(input_loc, array[0], array[1], array[2]);
+}
+
+void Game3D::BaseShader::SetInputF(std::string name, std::array<float, 4> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4f(input_loc, array[0], array[1], array[2], array[3]);
+}
+
+void Game3D::BaseShader::SetInputI(std::string name, std::array<int, 1> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform1i(input_loc, array[0]);
+}
+
+void Game3D::BaseShader::SetInputI(std::string name, std::array<int, 2> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform2i(input_loc, array[0], array[1]);
+}
+
+void Game3D::BaseShader::SetInputI(std::string name, std::array<int, 3> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform3i(input_loc, array[0], array[1], array[2]);
+}
+
+void Game3D::BaseShader::SetInputI(std::string name, std::array<int, 4> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4i(input_loc, array[0], array[1], array[2], array[3]);
+}
+
+void Game3D::BaseShader::SetInputUI(std::string name, std::array<unsigned int, 1> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform1ui(input_loc, array[0]);
+}
+
+void Game3D::BaseShader::SetInputUI(std::string name, std::array<unsigned int, 2> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform2ui(input_loc, array[0], array[1]);
+}
+
+void Game3D::BaseShader::SetInputUI(std::string name, std::array<unsigned int, 3> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform3ui(input_loc, array[0], array[1], array[2]);
+}
+
+void Game3D::BaseShader::SetInputUI(std::string name, std::array<unsigned int, 4> array) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4ui(input_loc, array[0], array[1], array[2], array[3]);
+}
+
+void Game3D::BaseShader::SetInputF(std::string name, ColorF color) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4f(input_loc, color.r, color.g, color.b, color.a);
+}
+
+void Game3D::BaseShader::SetInputUC(std::string name, ColorUC color) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4f(input_loc, (float) color.r / 255, (float) color.g / 255, (float) color.b / 255, (float) color.a / 255);
+}
+
+void Game3D::BaseShader::SetInputI(std::string name, RectangleI rectangle) {
+    GLuint input_loc = glGetUniformLocation(shader_program, name.c_str());
+    glUniform4i(input_loc, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+}
+
 
 Game3D::CustomShader::CustomShader(std::string vertex_file_path, std::string fragment_file_path) {
     std::ifstream vertex_fin(vertex_file_path);
@@ -411,8 +429,8 @@ void Game3D::Object::Delete() {
     vertex_array.Delete();
 }
 
-void Game3D::Object::SetPosition(Eigen::Vector3f arg_position) {
-    position = arg_position;
+void Game3D::Object::SetPosition(Point3F arg_position) {
+    position = {arg_position.x, arg_position.y, arg_position.z};
     ComputeWorldTransform();
 }
 
@@ -455,18 +473,18 @@ Game3D::Camera::Camera(float fov, float height_to_width, float near, float far) 
     projection_matrix(3,2) = 1;
     projection_matrix(2,3) = -1 * near * far / range;
     projection_matrix(3,3) = 0;
-    LookAt({0, 0, 0}, {0, 0, 1}, Eigen::Vector3f::UnitY());
+    LookAt(Point3F(0, 0, 0), Point3F(0, 0, 1), Vector3F(0, 1, 0));
 }
 
 
 //Roses are red, violets are blue, https://stackoverflow.com/a/13786235/12620352, thank you.
 
-void Game3D::Camera::LookAt(Eigen::Vector3f position, Eigen::Vector3f target, Eigen::Vector3f up) {
+void Game3D::Camera::LookAt(Point3F position, Point3F target, Vector3F up) {
     Eigen::Matrix3f R;
-    R.col(2) = (position-target).normalized();
-    R.col(0) = up.cross(R.col(2)).normalized();
+    R.col(2) = (position.ConvertToEigen()-target.ConvertToEigen()).normalized();
+    R.col(0) = up.ConvertToEigen().cross(R.col(2)).normalized();
     R.col(1) = R.col(2).cross(R.col(0));
     view_matrix.topLeftCorner<3,3>() = R.transpose();
-    view_matrix.topRightCorner<3,1>() = -R.transpose() * position;
+    view_matrix.topRightCorner<3,1>() = -R.transpose() * position.ConvertToEigen();
     view_matrix(3,3) = 1.0f;
 }

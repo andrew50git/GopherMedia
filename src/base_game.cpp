@@ -1,8 +1,4 @@
-#include "../gopher_media.h"
-
-/*
-Base Game
-*/
+#include "base_game.h"
 
 void BaseGame::ProcessInput() {
     SDL_PumpEvents();
@@ -14,17 +10,17 @@ void BaseGame::ProcessInput() {
             break;
         }
     }
-    mouse_buttons = SDL_GetGlobalMouseState(&mouse_pos(0), &mouse_pos(1));
+    mouse_buttons = SDL_GetGlobalMouseState(&mouse_position.x, &mouse_position.y);
 }
 
 bool BaseGame::GetKeyboardState(int keycode) {
     return keys[SDL_GetScancodeFromKey(keycode)];
 }
 
-Eigen::Vector2i BaseGame::GetMousePos() {
-    Eigen::Vector2i window_pos;
-    SDL_GetWindowPosition(window, &window_pos(0), &window_pos(1));
-    return {mouse_pos(0) - window_pos(0), mouse_pos(1) - window_pos(1)};
+Vector2I BaseGame::GetMousePosition() {
+    Vector2I window_position;
+    SDL_GetWindowPosition(window, &window_position.x, &window_position.y);
+    return {mouse_position.x - window_position.x, mouse_position.y - window_position.y};
 }
 
 bool BaseGame::GetMouseButton(MouseButton button) {
@@ -47,8 +43,4 @@ void BaseGame::StopLoop() {
 
 bool BaseGame::GetIsRunning() {
     return is_running;
-}
-
-void Quit() {
-    SDL_Quit();
 }

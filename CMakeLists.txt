@@ -3,11 +3,18 @@ cmake_minimum_required(VERSION 3.4)
 project(GopherMedia)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." ON)
+if (${FORCE_COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+       add_compile_options(-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+       add_compile_options(-fcolor-diagnostics)
+    endif()
+endif()
 
 
 add_library(SDL2 SHARED IMPORTED)
@@ -22,7 +29,7 @@ set_target_properties(SDL2_mixer PROPERTIES IMPORTED_LOCATION /usr/lib/x86_64-li
 add_library(glew SHARED IMPORTED)
 set_target_properties(glew PROPERTIES IMPORTED_LOCATION /usr/lib64/libGLEW.so)
 
-add_library(gopher_media SHARED gopher_media.cpp)
+add_library(gopher_media SHARED src/gopher_media.cpp)
 target_link_libraries(gopher_media SDL2_image)
 target_link_libraries(gopher_media SDL2_ttf)
 target_link_libraries(gopher_media SDL2)
