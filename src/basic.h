@@ -89,10 +89,6 @@ friend class Game3D;
 friend class Game2D;
 };
 
-
-
-Vector3F operator-(Vector3F point1, Vector3F point2);
-
 void Quit();
 
 
