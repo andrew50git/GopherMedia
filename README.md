@@ -9,12 +9,14 @@ SDL2, Eigen 3, and GLEW
 
 Note that you probably need to update your include/link paths for GopherMedia to compile successfully.
 
-# Screenshot
+# Screenshots
 ![an orange square slightly tilted](screenshots/gophermedia1.png)
+![two gophers eating baguette, a red rectangle, and text displaying the cursor's position](screenshots/gophermedia2.png)
 
 # Compilation and exection
 
 ```
+git submodule update --init --recursive
 cmake .
 make
 cd bin
