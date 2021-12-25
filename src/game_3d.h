@@ -1,5 +1,5 @@
-#ifndef GOPHER_MEDIA_GAME_3D
-#define GOPHER_MEDIA_GAME_3D
+#ifndef GOPHERMEDIA_GAME_3D_H
+#define GOPHERMEDIA_GAME_3D_H
 #include "gopher_media.h"
 
 class Game3D : public BaseGame {

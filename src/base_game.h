@@ -1,6 +1,6 @@
-#ifndef GOPHER_MEDIA_BASE_GAME
-#define GOPHER_MEDIA_BASE_GAME
-#include "gopher_media.h"
+#ifndef GOPHERMEDIA_BASE_GAME_H
+#define GOPHERMEDIA_BASE_GAME_H
+#include "basic.h"
 
 class BaseGame {
 public:

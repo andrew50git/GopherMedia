@@ -11,9 +11,9 @@ Note that you probably need to update your include/link paths for GopherMedia to
 
 # Screenshots
 ![an orange square slightly tilted](screenshots/gophermedia1.png)
-![two gophers eating baguette, a red rectangle, and text displaying the cursor's position](screenshots/gophermedia2.png)
+![two gophers eating baguettes, a red rectangle, and text displaying the cursor's position](screenshots/gophermedia2.png)
 
-# Compilation and exection
+# Compilation and execution
 
 ```
 git submodule update --init --recursive

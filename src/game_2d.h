@@ -1,5 +1,5 @@
-#ifndef GOPHER_MEDIA_GAME_2D
-#define GOPHER_MEDIA_GAME_2D
+#ifndef GOPHERMEDIA_GAME_2D_H
+#define GOPHERMEDIA_GAME_2D_H
 
 #include "gopher_media.h"
 

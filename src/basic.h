@@ -1,5 +1,5 @@
-#ifndef GOPHER_MEDIA_BASIC
-#define GOPHER_MEDIA_BASIC
+#ifndef GOPHERMEDIA_BASIC_H
+#define GOPHERMEDIA_BASIC_H
 #include "gopher_media.h"
 
 enum ImageFlip {

@@ -1,5 +1,5 @@
-#ifndef GOPHER_MEDIA_H
-#define GOPHER_MEDIA_H
+#ifndef GOPHERMEDIA_H
+#define GOPHERMEDIA_H
 
 #include <SDL.h>
 #include <GL/glew.h>
