@@ -1,4 +1,4 @@
-#include "../src/gopher_media.h"
+#include "gopher_media.h"
 #include <iostream>
 
 void test_Game3D() {

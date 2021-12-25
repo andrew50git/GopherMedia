@@ -1,6 +1,7 @@
 #ifndef GOPHERMEDIA_GAME_3D_H
 #define GOPHERMEDIA_GAME_3D_H
-#include "gopher_media.h"
+#include "basic.h"
+#include "base_game.h"
 
 class Game3D : public BaseGame {
 private:

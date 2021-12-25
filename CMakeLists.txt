@@ -31,7 +31,7 @@ include_directories(${SDL2_IMAGE_INCLUDE_DIRS})
 include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(src/)
 
-add_library(gopher_media SHARED src/gopher_media.cpp)
+add_library(gopher_media SHARED src/basic.cpp src/base_game.cpp src/game_2d.cpp src/game_3d.cpp)
 target_link_libraries(gopher_media ${SDL2_LIBRARIES})
 target_link_libraries(gopher_media ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries(gopher_media ${SDL2_TTF_LIBRARIES})

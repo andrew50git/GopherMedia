@@ -1,6 +1,19 @@
 #ifndef GOPHERMEDIA_BASIC_H
 #define GOPHERMEDIA_BASIC_H
-#include "gopher_media.h"
+#include <SDL.h>
+#include <GL/glew.h>
+#include <SDL_opengl.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <SDL_mixer.h>
+#include <array>
+#include <iostream>
+#include <map>
+#include <vector>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+#include <fstream>
+#include <sstream>
 
 enum ImageFlip {
     vertical,

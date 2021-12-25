@@ -1,4 +1,4 @@
-#include "gopher_media.h"
+#include "game_2d.h"
 
 Game2D::Game2D(std::string title, RectangleI rectangle, float frame_rate_arg) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
